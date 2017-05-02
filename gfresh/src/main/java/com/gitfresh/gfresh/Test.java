@@ -1,6 +1,4 @@
-package com.gitfresh.thrift.gfresh;
-
-import com.gitfresh.gfresh.UserService;
+package com.gitfresh.gfresh;
 
 public class Test {
 

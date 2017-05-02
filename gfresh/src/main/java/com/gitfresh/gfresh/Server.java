@@ -1,9 +1,12 @@
-package com.gitfresh.thrift.gfresh;
+package com.gitfresh.gfresh;
 
 
 import org.apache.thrift.server.TServer;
 import org.apache.thrift.server.TThreadPoolServer;
 import org.apache.thrift.transport.TServerSocket;
+
+import com.gitfresh.thrift.gfresh.GFresh;
+
 
 /**
  * Created by zma on 5/2/17.

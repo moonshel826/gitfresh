@@ -1,9 +1,10 @@
-package com.gitfresh.thrift.gfresh;
+package com.gitfresh.gfresh;
 
 
-import com.gitfresh.gfresh.UserService;
 import com.gitfresh.thrift.gfresh.GFresh;
+
 import com.gitfresh.thrift.gfresh.SearchQueryResponse;
+
 
 import java.util.ArrayList;
 import java.util.List;

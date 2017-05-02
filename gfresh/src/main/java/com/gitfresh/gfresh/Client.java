@@ -1,8 +1,10 @@
-package com.gitfresh.thrift.gfresh;
+package com.gitfresh.gfresh;
 
 
 import com.gitfresh.thrift.gfresh.GFresh;
 import com.gitfresh.thrift.gfresh.SearchQueryResponse;
+
+
 import org.apache.thrift.TException;
 import org.apache.thrift.protocol.TBinaryProtocol;
 import org.apache.thrift.transport.TSocket;
