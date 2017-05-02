@@ -1,22 +1,15 @@
 package com.gitfresh.gfresh;
 
-import java.io.IOException;
-import java.net.UnknownHostException;
-import java.util.ArrayList;
-import java.util.List;
-
 import org.kohsuke.github.GHUser;
 import org.kohsuke.github.GHUserSearchBuilder;
 import org.kohsuke.github.GitHub;
-import org.springframework.data.mongodb.core.MongoTemplate;
 
-
-import com.mongodb.MongoClient;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 public class UserService {
-	private static final String DB_NAME = "gfresh";
-	private static final String MONGO_HOST = "ZMa-MBP.local";
-	private static final int MONGO_PORT = 27017;
+
 	private static UserDAO userDao;
 	private static UserService userService;
 	
@@ -25,15 +18,8 @@ public class UserService {
 	}
 	public static UserService getUserService() {
 		if (userService == null) {
+			userDao = UserDAO.getUserDAO();
 			userService = new UserService();
-			try {
-				MongoClient mongo = new MongoClient(MONGO_HOST, MONGO_PORT);
-				MongoTemplate mongoOps = new MongoTemplate(mongo, DB_NAME);
-				userDao = new UserDAO(mongoOps);
-			} catch (UnknownHostException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
 		}
 		return userService;
 	}
