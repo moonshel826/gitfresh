@@ -1,10 +1,18 @@
 package com.gitfresh.gfresh;
 
+import org.json.JSONObject;
 import org.kohsuke.github.GHUser;
 import org.kohsuke.github.GHUserSearchBuilder;
 import org.kohsuke.github.GitHub;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -12,10 +20,11 @@ public class UserService {
 
 	private static UserDAO userDao;
 	private static UserService userService;
-	
+
 	private UserService() {
-		
+
 	}
+
 	public static UserService getUserService() {
 		if (userService == null) {
 			userDao = UserDAO.getUserDAO();
@@ -23,31 +32,95 @@ public class UserService {
 		}
 		return userService;
 	}
-	
+
+	private static String readAll(Reader rd){
+		StringBuilder sb = new StringBuilder();
+		int cp;
+		try {
+			while ((cp = rd.read()) != -1) {
+				sb.append((char) cp);
+			}
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return sb.toString();
+	}
+
+	public static JSONObject readJsonFromUrl(String url){
+		InputStream is = null;
+		try {
+			is = new URL(url).openStream();
+		} catch (MalformedURLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		try {
+			BufferedReader rd = new BufferedReader(new InputStreamReader(is, Charset.forName("UTF-8")));
+			String jsonText = readAll(rd);
+			JSONObject json = new JSONObject(jsonText);
+			return json;
+		} finally {
+			try {
+				is.close();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+	}
+
 	public List<GFreshUser> searchByQuery(String query) {
 		List<GFreshUser> res = new ArrayList<GFreshUser>();
 		try {
-			GitHub github;
-			github = GitHub.connectAnonymously();
-			GHUserSearchBuilder search = github.searchUsers();
-	        search.q(query);
-	       
-	        for (GHUser item : search.list()) {
-	        	GFreshUser user = userDao.readById(item.getId());
-	        	if (user == null) {
-	        		user = new GFreshUser(item.getId(), item.getLogin(), item.getFollowersCount(), item.getLocation());
-	        		
-	        		userDao.create(user);
-	        		System.out.println("--Creat user: " + user);
-	        	}
-	        	res.add(user);
-	        }
+			GitHub github = GitHub.connect("moonshel826", "8649f3b3735f999e80eaaa0ac5b52dc6a97a487c");
+			GHUserSearchBuilder search = github.searchUsers().q(query);
+
+			for (GHUser item : search.list()) {
+
+				GFreshUser user = userDao.readById(item.getId());
+				if (user == null) {	
+					user = new GFreshUser(item.getId(), item.getLogin(), item.getName(), item.getFollowersCount(),
+							item.getLocation(), item.getEmail(), item.getUrl(), item.getHtmlUrl(), item.getBlog(), item.getCompany(),
+							item.getRepositories(), item.getPublicRepoCount());
+					
+					userDao.create(user);
+					System.out.println("--Creat user: " + user);
+				}
+				res.add(user);
+
+			}
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		return res;
 	}
-
 	
+	public void updateUsers() {
+		int count = 0;
+		for (GFreshUser user : userDao.findAllUsers()) {
+			if (count == 29) {
+				try {
+					Thread.sleep(1000 * 120);
+				} catch (InterruptedException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+				count = 0;
+			}
+			JSONObject json = readJsonFromUrl(user.getUrl());
+			user.setBio(json.get("bio") instanceof String ? (String) json.get("bio"): "");
+			user.setHireable(json.get("hireable") instanceof Boolean ? ((Boolean) json.get("hireable")).toString(): "");
+			userDao.updateUser(user);
+			System.out.println("--Update user: -Bio: " + user.getBio() + " -Hireable: " + user.getHireable());
+			
+			count++;
+		}
+		
+	}
+
 }

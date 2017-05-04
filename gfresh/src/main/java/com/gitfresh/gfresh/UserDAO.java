@@ -4,6 +4,7 @@ import com.mongodb.MongoClient;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.data.mongodb.core.query.Update;
 
 import java.net.UnknownHostException;
 import java.util.List;
@@ -33,22 +34,30 @@ public class UserDAO {
 		return userDao;
 	}
 	public void create(GFreshUser user) {
-		this.mongoOps.insert(user, USER_COLLECTION);
+		mongoOps.insert(user, USER_COLLECTION);
 	}
 	
 	public GFreshUser readById(int id) {
 		Query query = new Query(Criteria.where("_id").is(id));
-		return this.mongoOps.findOne(query, GFreshUser.class, USER_COLLECTION);
+		return mongoOps.findOne(query, GFreshUser.class, USER_COLLECTION);
 	}
 	
-	public List<GFreshUser> getByLocation(String location) {
-		Query query = new Query(Criteria.where("location").is(location));
-		return this.mongoOps.find(query, GFreshUser.class, USER_COLLECTION);
+	public List<GFreshUser> findAllUsers() {
+		return mongoOps.findAll(GFreshUser.class, USER_COLLECTION);
 	}
 	
-	public List<GFreshUser> getByFolowwers(int min, int max) {
-		Query query = new Query(Criteria.where("followersCount").gte(min).lte(min));
-		return this.mongoOps.find(query, GFreshUser.class, USER_COLLECTION);
+	public void updateUser(GFreshUser user) {	
+		mongoOps.save(user);
 	}
+	
+//	public List<GFreshUser> getByLocation(String location) {
+//		Query query = new Query(Criteria.where("location").is(location));
+//		return mongoOps.find(query, GFreshUser.class, USER_COLLECTION);
+//	}
+//	
+//	public List<GFreshUser> getByFolowwers(int min, int max) {
+//		Query query = new Query(Criteria.where("followersCount").gte(min).lte(min));
+//		return mongoOps.find(query, GFreshUser.class, USER_COLLECTION);
+//	}
 	
 }
