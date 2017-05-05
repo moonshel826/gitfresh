@@ -4,7 +4,6 @@ import com.mongodb.MongoClient;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
-import org.springframework.data.mongodb.core.query.Update;
 
 import java.net.UnknownHostException;
 import java.util.List;
@@ -15,6 +14,7 @@ public class UserDAO {
 	private static final int MONGO_PORT = 27017;
 	private static MongoTemplate mongoOps;
 	private static final String USER_COLLECTION = "user";
+	private static final String Token_COLLECTION = "token";
 	private static UserDAO userDao;
 	
 	private UserDAO() {
@@ -47,7 +47,12 @@ public class UserDAO {
 	}
 	
 	public void updateUser(GFreshUser user) {	
-		mongoOps.save(user);
+		mongoOps.save(user, USER_COLLECTION);
+	}
+	
+	public Token getTokenInfo() {
+		Query query = new Query(Criteria.where("_id").is(1));
+		return mongoOps.findOne(query, Token.class, Token_COLLECTION);
 	}
 	
 //	public List<GFreshUser> getByLocation(String location) {

@@ -33,7 +33,7 @@ public class UserService {
 		return userService;
 	}
 
-	private static String readAll(Reader rd){
+	private static String readAll(Reader rd) {
 		StringBuilder sb = new StringBuilder();
 		int cp;
 		try {
@@ -47,21 +47,22 @@ public class UserService {
 		return sb.toString();
 	}
 
-	public static JSONObject readJsonFromUrl(String url){
+	public static JSONObject readJsonFromUrl(String url) {
 		InputStream is = null;
+		JSONObject json = null;
 		try {
 			is = new URL(url).openStream();
+			BufferedReader rd = new BufferedReader(new InputStreamReader(is, Charset.forName("UTF-8")));
+			String jsonText = readAll(rd);
+			json = new JSONObject(jsonText);
+			return json;
 		} catch (MalformedURLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+			return json;
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-		}
-		try {
-			BufferedReader rd = new BufferedReader(new InputStreamReader(is, Charset.forName("UTF-8")));
-			String jsonText = readAll(rd);
-			JSONObject json = new JSONObject(jsonText);
 			return json;
 		} finally {
 			try {
@@ -76,17 +77,18 @@ public class UserService {
 	public List<GFreshUser> searchByQuery(String query) {
 		List<GFreshUser> res = new ArrayList<GFreshUser>();
 		try {
-			GitHub github = GitHub.connect("moonshel826", "8649f3b3735f999e80eaaa0ac5b52dc6a97a487c");
+			
+			GitHub github = GitHub.connect("moonshel826", userDao.getTokenInfo().getToken());
 			GHUserSearchBuilder search = github.searchUsers().q(query);
 
 			for (GHUser item : search.list()) {
 
 				GFreshUser user = userDao.readById(item.getId());
-				if (user == null) {	
+				if (user == null) {
 					user = new GFreshUser(item.getId(), item.getLogin(), item.getName(), item.getFollowersCount(),
-							item.getLocation(), item.getEmail(), item.getUrl(), item.getHtmlUrl(), item.getBlog(), item.getCompany(),
-							item.getRepositories(), item.getPublicRepoCount());
-					
+							item.getLocation(), item.getEmail(), item.getUrl(), item.getHtmlUrl(), item.getBlog(),
+							item.getCompany(), item.getRepositories(), item.getPublicRepoCount());
+
 					userDao.create(user);
 					System.out.println("--Creat user: " + user);
 				}
@@ -99,28 +101,21 @@ public class UserService {
 		}
 		return res;
 	}
-	
-	public void updateUsers() {
-		int count = 0;
-		for (GFreshUser user : userDao.findAllUsers()) {
-			if (count == 29) {
-				try {
-					Thread.sleep(1000 * 120);
-				} catch (InterruptedException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-				count = 0;
-			}
-			JSONObject json = readJsonFromUrl(user.getUrl());
-			user.setBio(json.get("bio") instanceof String ? (String) json.get("bio"): "");
-			user.setHireable(json.get("hireable") instanceof Boolean ? ((Boolean) json.get("hireable")).toString(): "");
-			userDao.updateUser(user);
-			System.out.println("--Update user: -Bio: " + user.getBio() + " -Hireable: " + user.getHireable());
-			
-			count++;
-		}
-		
-	}
 
+	public void updateUsers() {
+		for (GFreshUser user : userDao.findAllUsers()) {
+			if ("".equals(user.getBio())  && "".equals(user.getHireable()) && !user.getLocation().startsWith("Tempe")) {
+
+				JSONObject json = readJsonFromUrl(user.getUrl() + "?access_token=" + userDao.getTokenInfo().getToken());
+				user.setBio(json.get("bio") instanceof String ? (String) json.get("bio") : "");
+				user.setHireable(
+						json.get("hireable") instanceof Boolean ? ((Boolean) json.get("hireable")).toString() : "");
+				userDao.updateUser(user);
+				System.out.println("--Update user: -Bio: " + user.getBio() + " -Hireable: " + user.getHireable());
+				System.out.println(userDao.readById(user.getId()));
+			}
+			
+		}
+
+	}
 }

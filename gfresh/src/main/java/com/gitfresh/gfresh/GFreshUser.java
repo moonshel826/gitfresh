@@ -19,12 +19,19 @@ public class GFreshUser {
 	private String blog;
 	private String company; 
 	private int javaRepoCount;
+	private int selfownedJavaRepoCount;
 	private int javascriptRepoCount;
+	private int selfownedJavascriptRepoCount;
 	private int groovyRepoCount;
+	private int selfownedGroovyRepoCount;
 	private int scalaRepoCount;
+	private int selfownedScalaRepoCount;
 	private int goRepoCount;
+	private int selfownedGoRepoCount;
 	private int rubyRepoCount;
+	private int selfownedRubyRepoCount;
 	private int otherRepoCount;
+	private int selfownedOtherRepoCount;
 	private int publicRepoCount;
 	private String bio;
 	private String hireable;
@@ -46,18 +53,39 @@ public class GFreshUser {
 		for (GHRepository repository: repositories.values()) {
 			if ("Java".equalsIgnoreCase(repository.getLanguage())) {
 				this.javaRepoCount++;
+				if (!repository.isFork()) {
+					selfownedJavaRepoCount++;
+				}
 			} else if ("JavaScript".equalsIgnoreCase(repository.getLanguage())) {
 				this.javascriptRepoCount++;
+				if (!repository.isFork()) {
+					selfownedJavascriptRepoCount++;
+				}
 			} else if ("Groovy".equalsIgnoreCase(repository.getLanguage())) {
 				this.groovyRepoCount++;
+				if (!repository.isFork()) {
+					selfownedGroovyRepoCount++;
+				}
 			} else if ("Scala".equalsIgnoreCase(repository.getLanguage())) {
 				this.scalaRepoCount++;
+				if (!repository.isFork()) {
+					selfownedScalaRepoCount++;
+				}
 			} else if ("Go".equalsIgnoreCase(repository.getLanguage())) {
 				this.goRepoCount++;
+				if (!repository.isFork()) {
+					selfownedGoRepoCount++;
+				}
 			} else if ("Ruby".equalsIgnoreCase(repository.getLanguage())) {
 				this.rubyRepoCount++;
+				if (!repository.isFork()) {
+					selfownedRubyRepoCount++;
+				}
 			} else {
 				this.otherRepoCount++;
+				if (!repository.isFork()) {
+					selfownedOtherRepoCount++;
+				}
 			}
 		}
 		this.publicRepoCount = publicRepoCount;
@@ -225,10 +253,66 @@ public class GFreshUser {
 		this.hireable = hireable;
 	}
 	
+	public int getSelfownedJavaRepoCount() {
+		return selfownedJavaRepoCount;
+	}
+	
+	public void setSelfownedJavaRepoCount(int selfownedJavaRepoCount) {
+		this.selfownedJavaRepoCount = selfownedJavaRepoCount;
+	}
+	
+	public int getSelfownedJavascriptRepoCount() {
+		return selfownedJavascriptRepoCount;
+	}
+	
+	public void setSelfownedJavascriptRepoCount(int selfownedJavascriptRepoCount) {
+		this.selfownedJavascriptRepoCount = selfownedJavascriptRepoCount;
+	}
+	
+	public int getSelfownedGroovyRepoCount() {
+		return selfownedGroovyRepoCount;
+	}
+	
+	public void setSelfownedGroovyRepoCount(int selfownedGroovyRepoCount) {
+		this.selfownedGroovyRepoCount = selfownedGroovyRepoCount;
+	}
+	
+	public int getSelfownedScalaRepoCount() {
+		return selfownedScalaRepoCount;
+	}
+	
+	public void setSelfownedScalaRepoCount(int selfownedScalaRepoCount) {
+		this.selfownedScalaRepoCount = selfownedScalaRepoCount;
+	}
+	
+	public int getSelfownedGoRepoCount() {
+		return selfownedGoRepoCount;
+	}
+	
+	public void setSelfownedGoRepoCount(int selfownedGoRepoCount) {
+		this.selfownedGoRepoCount = selfownedGoRepoCount;
+	}
+	
+	public int getSelfownedRubyRepoCount() {
+		return selfownedRubyRepoCount;
+	}
+	
+	public void setSelfownedRubyRepoCount(int selfownedRubyRepoCount) {
+		this.selfownedRubyRepoCount = selfownedRubyRepoCount;
+	}
+	
+	public int getSelfownedOtherRepoCount() {
+		return selfownedOtherRepoCount;
+	}
+	
+	public void setSelfownedOtherRepoCount(int selfownedOtherRepoCount) {
+		this.selfownedOtherRepoCount = selfownedOtherRepoCount;
+	}
+	
 	@Override
 	public String toString() {
 		return "User ID: " + id + " -User Name: " + userName + " -Name: " + name + " -Followers: " + followersCount + " -Location: " + location
 				+ " -Email: " + email + " -HtmlURL: " + htmlUrl + " -Company: " + company + " -Java Repo Count: " + javaRepoCount +
-				" -Public Repo Count: " + publicRepoCount;
+				" -Public Repo Count: " + publicRepoCount + " Bio: " + bio + " Hireable: " + hireable;
 	}
 }
