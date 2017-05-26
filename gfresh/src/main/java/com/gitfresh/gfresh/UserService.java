@@ -5,6 +5,8 @@ import org.kohsuke.github.GHUser;
 import org.kohsuke.github.GHUserSearchBuilder;
 import org.kohsuke.github.GitHub;
 import java.io.BufferedReader;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -18,8 +20,9 @@ import java.util.List;
 public class UserService {
 
 	// Singleton
-	private static UserDAO userDao;
+	private static UserDAO userDao  = UserDAO.getUserDAO();
 	private static UserService userService;
+	private static final String token = userDao.getTokenInfo().getToken();
 
 	private UserService() {
 
@@ -27,7 +30,6 @@ public class UserService {
 
 	public static UserService getUserService() {
 		if (userService == null) {
-			userDao = UserDAO.getUserDAO();
 			userService = new UserService();
 		}
 		return userService;
@@ -70,25 +72,60 @@ public class UserService {
 			}
 		}
 	}
+	
+	public static List<String> readFile(String filename){
+		BufferedReader abc;
+		List<String> lines = new ArrayList<String>();
+		try {
+			abc = new BufferedReader(new FileReader(filename));		
+			String line = null;
+			while((line = abc.readLine()) != null) {
+//				if(line.endsWith("County seat")) {
+//					lines.add("\"" + line.substring(0, line.length() - 11) + "\"");
+//				} else {
+//					lines.add("\"" + line + "\"");
+//				}  
+				lines.add(line);
+			}
+			System.out.println("Reading file in User Service: " + lines);
+			abc.close();
+		} catch (FileNotFoundException e) {		
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return lines;
+	}
 
 	public List<GFreshUser> searchByQuery(String query) {
 		List<GFreshUser> res = new ArrayList<GFreshUser>();
 		try {
 			// github-api
-			GitHub github = GitHub.connect("moonshel826", userDao.getTokenInfo().getToken());
+			GitHub github = GitHub.connect("moonshel826", token);
 			GHUserSearchBuilder search = github.searchUsers().q(query);
-
+			List<String> lines = readFile("states.txt");
+			
 			for (GHUser item : search.list()) {
-				GFreshUser user = userDao.readById(item.getId());
-				if (user == null) {
-					user = new GFreshUser(item.getId(), item.getLogin(), item.getName(), item.getFollowersCount(),
-							item.getLocation(), item.getEmail(), item.getUrl(), item.getHtmlUrl(), item.getBlog(),
-							item.getCompany(), item.getRepositories(), item.getPublicRepoCount());
-
-					userDao.create(user);
-					System.out.println("--Creat user: " + user);
+				boolean validatLocation = true;
+				for (String state : lines) {
+					if (item.getLocation().endsWith(" "+ state)) {
+						validatLocation = false;
+						break;
+					}
 				}
-				res.add(user);
+				if (validatLocation) {
+					GFreshUser user = userDao.readById(item.getId());
+					if (user == null) {
+						user = new GFreshUser(item.getId(), item.getLogin(), item.getName(), item.getFollowersCount(),
+								item.getLocation(), item.getEmail(), item.getUrl(), item.getHtmlUrl(), item.getBlog(),
+								item.getCompany(), item.getRepositories(), item.getPublicRepoCount());
+	
+						userDao.createUser(user);
+						System.out.println("--Creat user: " + user);
+					}
+					res.add(user);
+				}
+				
 			}
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -96,10 +133,12 @@ public class UserService {
 		return res;
 	}
 
-	public void updateUsers() {
-		for (GFreshUser user : userDao.findAllUsers()) {
+	public void updateUsers(int beginRow) {
+		List<GFreshUser> users = userDao.findAllUsers();
+		for (int i = beginRow; i < users.size(); i++) {
+			GFreshUser user = users.get(i);
 			if ("".equals(user.getBio()) && "".equals(user.getHireable())) {
-				JSONObject json = readJsonFromUrl(user.getUrl() + "?access_token=" + userDao.getTokenInfo().getToken());
+				JSONObject json = readJsonFromUrl(user.getUrl() + "?access_token=" + token);
 				user.setBio(json.get("bio") instanceof String ? (String) json.get("bio") : "");
 				user.setHireable(
 						json.get("hireable") instanceof Boolean ? ((Boolean) json.get("hireable")).toString() : "");
@@ -108,5 +147,21 @@ public class UserService {
 				System.out.println(userDao.readById(user.getId()));
 			}
 		}
+	}
+	
+	public void cleanUsers() {
+		List<String> lines = UserService.readFile("states.txt");
+		int count = 0;
+		for (GFreshUser user : userDao.findAllUsers()) {
+			for (String state : lines) {
+				if (user.getLocation().endsWith(state) && !user.getLocation().contains("CA") && !user.getLocation().contains("San Francisco") 
+						&& !user.getLocation().contains("SAN FRANCISCO") && !user.getLocation().contains("California")) {
+					System.out.println(count + " " + user.getLocation());
+					userDao.deleteUser(user);
+					break;
+				}		
+			}
+			count++;
+		}	
 	}
 }

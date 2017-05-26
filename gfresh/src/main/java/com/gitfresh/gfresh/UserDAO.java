@@ -11,7 +11,7 @@ public class UserDAO {
 	private static final String DB_NAME = "gfresh";
 	private static final String MONGO_HOST = "ZMa-MBP.local";
 	private static final int MONGO_PORT = 27017;
-	private static final String USER_COLLECTION = "user";
+	private static final String USER_COLLECTION = "userSF";
 	private static final String Token_COLLECTION = "token";
 	// Singleton
 	private static UserDAO userDao;
@@ -33,7 +33,7 @@ public class UserDAO {
 		return userDao;
 	}
 
-	public void create(GFreshUser user) {
+	public void createUser(GFreshUser user) {
 		mongoOps.insert(user, USER_COLLECTION);
 	}
 
@@ -48,6 +48,10 @@ public class UserDAO {
 
 	public void updateUser(GFreshUser user) {
 		mongoOps.save(user, USER_COLLECTION);
+	}
+	
+	public void deleteUser(GFreshUser user) {
+		mongoOps.remove(user, USER_COLLECTION);
 	}
 
 	public Token getTokenInfo() {
